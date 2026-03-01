@@ -3,7 +3,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Get the site URL from env var, ensure no trailing slash or spaces
 const getSiteUrl = () => {
   const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   return url.trim().replace(/\/$/, '');
@@ -25,16 +24,12 @@ export async function signIn(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Cookie setting failed on server
-          }
+          } catch (error) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Cookie removal failed on server
-          }
+          } catch (error) {}
         },
       },
     }
@@ -56,8 +51,6 @@ export async function signUp(formData: FormData) {
   const cookieStore = cookies();
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  
-  // Ensure redirect URL is clean (no spaces, no trailing slash)
   const redirectTo = `${getSiteUrl()}/login`;
 
   const supabase = createServerClient(
@@ -71,16 +64,12 @@ export async function signUp(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Cookie setting failed on server
-          }
+          } catch (error) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Cookie removal failed on server
-          }
+          } catch (error) {}
         },
       },
     }
@@ -89,23 +78,19 @@ export async function signUp(formData: FormData) {
   const { error, data } = await supabase.auth.signUp({ 
     email, 
     password,
-    options: {
-      emailRedirectTo: redirectTo
-    }
+    options: { emailRedirectTo: redirectTo }
   });
   
   if (error) {
     return { error: `Supabase Error: ${error.message}` };
   }
   
-  console.log('SignUp Success:', { userId: data?.user?.id, email: data?.user?.email });
-  
+  console.log('SignUp Success:', { userId: data?.user?.id });
   return { success: true };
 }
 
 export async function signOut() {
   'use server';
-  
   const cookieStore = cookies();
   
   const supabase = createServerClient(
@@ -113,28 +98,17 @@ export async function signOut() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
+        get(name: string) { return cookieStore.get(name)?.value; },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Handle cookie error
-          }
+          try { cookieStore.set({ name, value, ...options }); } catch (error) {}
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Handle cookie error
-          }
+          try { cookieStore.set({ name, value: '', ...options, maxAge: 0 }); } catch (error) {}
         },
       },
     }
   );
 
   await supabase.auth.signOut();
-  
   return { success: true };
 }
