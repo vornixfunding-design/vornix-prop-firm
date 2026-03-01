@@ -2,7 +2,6 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 export async function signIn(formData: FormData) {
   const cookieStore = cookies();
@@ -20,15 +19,15 @@ export async function signIn(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch {
-            // Handle server-side cookie setting
+          } catch (error) {
+            // Cookie setting failed on server
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch {
-            // Handle server-side cookie removal
+          } catch (error) {
+            // Cookie removal failed on server
           }
         },
       },
@@ -60,15 +59,15 @@ export async function signUp(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch {
-            // Handle server-side cookie setting
+          } catch (error) {
+            // Cookie setting failed on server
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch {
-            // Handle server-side cookie removal
+          } catch (error) {
+            // Cookie removal failed on server
           }
         },
       },
@@ -78,7 +77,7 @@ export async function signUp(formData: FormData) {
   const { error } = await supabase.auth.signUp({ email, password });
   
   if (error) {
-    return { error: 'Email already exists or invalid password' };
+    return { error: 'Email already exists or password too short (min 6 chars)' };
   }
   
   return { success: true };
