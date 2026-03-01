@@ -5,12 +5,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function SignupPage() {
+  const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError('');
+    setMessage('');
     
     const result = await signUp(formData);
     
@@ -18,8 +20,11 @@ export default function SignupPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Force hard redirect after successful signup
-      window.location.href = '/dashboard';
+      setMessage('Account created! Please check your email to confirm your account.');
+      setLoading(false);
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 4000);
     }
   }
 
@@ -35,6 +40,11 @@ export default function SignupPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
               {error}
+            </div>
+          )}
+          {message && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm">
+              {message}
             </div>
           )}
           
