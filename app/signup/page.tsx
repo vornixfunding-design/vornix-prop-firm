@@ -3,12 +3,10 @@
 import { signUp } from '@/utils/auth/actions';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -20,7 +18,7 @@ export default function SignupPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Force a hard redirect after successful signup
+      // Force hard redirect after successful signup
       window.location.href = '/dashboard';
     }
   }
