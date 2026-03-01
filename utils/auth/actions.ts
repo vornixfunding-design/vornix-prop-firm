@@ -3,11 +3,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-const getSiteUrl = () => {
-  const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  return url.trim().replace(/\/$/, '');
-};
-
 export async function signIn(formData: FormData) {
   const cookieStore = cookies();
   const email = formData.get('email') as string;
@@ -51,7 +46,6 @@ export async function signUp(formData: FormData) {
   const cookieStore = cookies();
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const redirectTo = `${getSiteUrl()}/login`;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -75,10 +69,11 @@ export async function signUp(formData: FormData) {
     }
   );
 
+  // ⚠️ KEY FIX: Do NOT pass emailRedirectTo here. Let Supabase use dashboard redirects.
   const { error, data } = await supabase.auth.signUp({ 
     email, 
-    password,
-    options: { emailRedirectTo: redirectTo }
+    password
+    // Removed: options: { emailRedirectTo: ... } ← This was causing the space bug
   });
   
   if (error) {
