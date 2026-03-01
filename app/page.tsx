@@ -4,11 +4,13 @@ import Link from 'next/link';
 
 export default async function HomePage() {
   const supabase = createClient();
-  const {  { user } } = await supabase.auth.getUser();
+  
+  // ✅ Correct destructuring: getUser() returns { data: { user }, error }
+  const { data: { user } } = await supabase.auth.getUser();
 
   // If user is logged in, redirect to their appropriate page
   if (user) {
-    const {  profile } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
