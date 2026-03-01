@@ -18,7 +18,6 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Force hard redirect after successful login
       window.location.href = '/dashboard';
     }
   }
