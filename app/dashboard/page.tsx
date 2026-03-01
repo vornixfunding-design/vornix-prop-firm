@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { signOut } from '@/utils/auth/actions';
-import { createClient } from '@/utils/supabase/client';
 
 export default function DashboardPage() {
-  const supabase = createClient();
 
   async function handleSignOut() {
     await signOut();
