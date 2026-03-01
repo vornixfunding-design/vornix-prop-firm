@@ -4,7 +4,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {  // ✅ Correct
+export const metadata: Metadata = {
   title: "Vornix Prop Firm",
   description: "Next Gen Proprietary Trading Firm",
 };
