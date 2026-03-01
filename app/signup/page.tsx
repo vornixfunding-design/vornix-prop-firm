@@ -1,64 +1,85 @@
 'use client';
 
-import Link from 'next/link';
-import { useState } from 'react';
 import { signUp } from '@/utils/auth/actions';
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function SignupPage() {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (formData: FormData) => {
-    setError(null);
-
+  async function handleSubmit(formData: FormData) {
+    setLoading(true);
+    setError('');
+    
     const result = await signUp(formData);
-
+    
     if (result?.error) {
       setError(result.error);
+      setLoading(false);
     }
-  };
+    // If success, middleware will redirect automatically
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-semibold text-[#0047AB]">Create Account</h1>
-
-        {error ? (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-[#0047AB]">Vornix</h2>
+          <p className="mt-2 text-gray-600">Create your account</p>
+        </div>
+        
+        <form className="mt-8 space-y-6" action={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="sr-only">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                disabled={loading}
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB] focus:border-[#0047AB] sm:text-sm"
+                placeholder="Email address"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minLength={6}
+                disabled={loading}
+                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB] focus:border-[#0047AB] sm:text-sm"
+                placeholder="Password (min 6 characters)"
+              />
+            </div>
           </div>
-        ) : null}
 
-        <form action={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            required
-            className="w-full rounded-md border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#0047AB] focus:ring-2 focus:ring-[#0047AB]/25"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password (min 6 chars)"
-            minLength={6}
-            required
-            className="w-full rounded-md border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#0047AB] focus:ring-2 focus:ring-[#0047AB]/25"
-          />
           <button
             type="submit"
-            className="w-full rounded-md bg-[#0047AB] px-4 py-3 font-medium text-white transition hover:brightness-110"
+            disabled={loading}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0047AB] hover:bg-[#003580] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0047AB] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? 'Creating...' : 'Create Account'}
           </button>
         </form>
-
-        <p className="mt-5 text-center text-sm text-gray-600">
+        
+        <p className="text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-[#0047AB] hover:underline">
+          <Link href="/login" className="font-medium text-[#0047AB] hover:text-[#003580]">
             Log In
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   );
 }
