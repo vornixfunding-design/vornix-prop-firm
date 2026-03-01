@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
-        set(name: string, value: string, options) {
+        set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options });
           response = NextResponse.next({
             request: {
@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
           });
           response.cookies.set({ name, value, ...options });
         },
-        remove(name: string, options) {
+        remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options, maxAge: 0 });
           response = NextResponse.next({
             request: {
@@ -63,7 +63,6 @@ export async function middleware(request: NextRequest) {
       if (role === 'admin') {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
-
       if (role === 'trader') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
       }
