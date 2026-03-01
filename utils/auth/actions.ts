@@ -37,7 +37,9 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (error) {
-    // Return the REAL Supabase error for debugging
+    if (error.message?.includes('Email not confirmed')) {
+      return { error: 'Please confirm your email before logging in. Check your inbox.' };
+    }
     return { error: `Supabase Error: ${error.message}` };
   }
   
@@ -78,12 +80,46 @@ export async function signUp(formData: FormData) {
   const { error, data } = await supabase.auth.signUp({ email, password });
   
   if (error) {
-    // Return the REAL Supabase error for debugging
     return { error: `Supabase Error: ${error.message}` };
   }
   
-  // Log the user ID for debugging (check Vercel logs if needed)
   console.log('SignUp Success:', { userId: data?.user?.id, email: data?.user?.email });
+  
+  return { success: true };
+}
+
+export async function signOut() {
+  'use server';
+  
+  const cookieStore = cookies();
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // Handle cookie error
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
+          } catch (error) {
+            // Handle cookie error
+          }
+        },
+      },
+    }
+  );
+
+  await supabase.auth.signOut();
   
   return { success: true };
 }
