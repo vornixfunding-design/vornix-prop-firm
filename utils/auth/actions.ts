@@ -82,8 +82,8 @@ export async function signUp(formData: FormData) {
     return { error: `Supabase Error: ${error.message}` };
   }
   
-  // Log the response for debugging (check Vercel logs if needed)
-  console.log('SignUp Response:', { user: data?.user, identity: data?.identity });
+  // Log the user ID for debugging (check Vercel logs if needed)
+  console.log('SignUp Success:', { userId: data?.user?.id, email: data?.user?.email });
   
   return { success: true };
 }
