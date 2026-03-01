@@ -35,21 +35,21 @@ export async function middleware(request: NextRequest) {
           response.cookies.set({ name, value: '', ...options, maxAge: 0 });
         },
       },
-    },
+    }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
   const protectedPaths = ['/dashboard', '/admin'];
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
 
+  // Redirect unauthenticated users away from protected routes
   if (!user && isProtectedPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // Handle authenticated users
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -59,7 +59,8 @@ export async function middleware(request: NextRequest) {
 
     const role = profile?.role;
 
-    if (pathname === '/login') {
+    // Redirect logged-in users away from login page based on role
+    if (pathname === '/login' || pathname === '/signup') {
       if (role === 'admin') {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
@@ -68,6 +69,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
+    // Block traders from accessing admin panel
     if (role === 'trader' && pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
