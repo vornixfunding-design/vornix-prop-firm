@@ -37,7 +37,8 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (error) {
-    return { error: 'Invalid email or password' };
+    // Return the REAL Supabase error for debugging
+    return { error: `Supabase Error: ${error.message}` };
   }
   
   return { success: true };
@@ -74,11 +75,15 @@ export async function signUp(formData: FormData) {
     }
   );
 
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error, data } = await supabase.auth.signUp({ email, password });
   
   if (error) {
-    return { error: 'Email already exists or password too short (min 6 chars)' };
+    // Return the REAL Supabase error for debugging
+    return { error: `Supabase Error: ${error.message}` };
   }
+  
+  // Log the response for debugging (check Vercel logs if needed)
+  console.log('SignUp Response:', { user: data?.user, identity: data?.identity });
   
   return { success: true };
 }
