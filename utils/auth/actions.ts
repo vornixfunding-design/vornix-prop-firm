@@ -19,16 +19,12 @@ export async function signIn(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Cookie setting failed on server
-          }
+          } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Cookie removal failed on server
-          }
+          } catch (e) {}
         },
       },
     }
@@ -43,21 +39,7 @@ export async function signIn(formData: FormData) {
     return { error: `Supabase Error: ${error.message}` };
   }
   
-  // ✅ NEW: Fetch user role and return it for client-side redirect
-  if (data?.user) {
-    const {  profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
-    
-    return { 
-      success: true, 
-      role: profile?.role || 'trader' // Default to trader if role is missing
-    };
-  }
-  
-  return { success: true, role: 'trader' };
+  return { success: true };
 }
 
 export async function signUp(formData: FormData) {
@@ -76,39 +58,29 @@ export async function signUp(formData: FormData) {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Cookie setting failed on server
-          }
+          } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Cookie removal failed on server
-          }
+          } catch (e) {}
         },
       },
     }
   );
 
-  // Do NOT pass emailRedirectTo - let Supabase use dashboard Redirect URLs
-  const { error, data } = await supabase.auth.signUp({ 
-    email, 
-    password
-  });
+  const { error, data } = await supabase.auth.signUp({ email, password });
   
   if (error) {
     return { error: `Supabase Error: ${error.message}` };
   }
   
-  console.log('SignUp Success:', { userId: data?.user?.id, email: data?.user?.email });
-  
+  console.log('SignUp Success:', { userId: data?.user?.id });
   return { success: true };
 }
 
 export async function signOut() {
   'use server';
-  
   const cookieStore = cookies();
   
   const supabase = createServerClient(
@@ -122,22 +94,17 @@ export async function signOut() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Handle cookie error
-          }
+          } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Handle cookie error
-          }
+          } catch (e) {}
         },
       },
     }
   );
 
   await supabase.auth.signOut();
-  
   return { success: true };
 }
