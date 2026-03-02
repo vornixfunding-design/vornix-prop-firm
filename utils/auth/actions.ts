@@ -17,20 +17,16 @@ export async function signIn(formData: FormData) {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (e) {}
+          try { cookieStore.set({ name, value, ...options }); } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (e) {}
+          try { cookieStore.set({ name, value: '', ...options, maxAge: 0 }); } catch (e) {}
         },
       },
     }
   );
 
-  const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (error) {
     if (error.message?.includes('Email not confirmed')) {
@@ -52,18 +48,12 @@ export async function signUp(formData: FormData) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
+        get(name: string) { return cookieStore.get(name)?.value; },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (e) {}
+          try { cookieStore.set({ name, value, ...options }); } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (e) {}
+          try { cookieStore.set({ name, value: '', ...options, maxAge: 0 }); } catch (e) {}
         },
       },
     }
@@ -88,18 +78,12 @@ export async function signOut() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
+        get(name: string) { return cookieStore.get(name)?.value; },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (e) {}
+          try { cookieStore.set({ name, value, ...options }); } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (e) {}
+          try { cookieStore.set({ name, value: '', ...options, maxAge: 0 }); } catch (e) {}
         },
       },
     }
