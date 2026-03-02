@@ -18,7 +18,12 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      window.location.href = '/dashboard';
+      // ✅ Hard redirect based on role returned from server
+      if (result?.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
     }
   }
 
