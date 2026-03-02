@@ -5,26 +5,22 @@ import Link from 'next/link';
 export default async function AdminPage() {
   const supabase = createClient();
   
-  const {  { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  // If not logged in, redirect to login
   if (!user) {
     redirect('/login');
   }
   
-  // Check if user is admin
-  const {  profile } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single();
   
-  // If not admin, redirect to dashboard
   if (!profile || profile.role !== 'admin') {
     redirect('/dashboard');
   }
-  
-  // Get stats for admin dashboard
+
   const { count: userCount } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true })
@@ -36,7 +32,6 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -47,10 +42,7 @@ export default async function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-600 text-sm">{user.email}</span>
-            <Link 
-              href="/dashboard" 
-              className="text-sm text-[#0047AB] hover:text-[#003580] font-medium"
-            >
+            <Link href="/dashboard" className="text-sm text-[#0047AB] hover:text-[#003580] font-medium">
               View Dashboard
             </Link>
             <form action="/auth/signout" method="POST">
@@ -62,15 +54,12 @@ export default async function AdminPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900">Admin Overview</h2>
           <p className="text-gray-600 mt-1">Manage your prop firm from here.</p>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
             <h3 className="text-sm font-medium text-gray-500">Total Traders</h3>
@@ -86,7 +75,6 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/stock" className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition cursor-pointer">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">📦 Manage Stock Accounts</h3>
