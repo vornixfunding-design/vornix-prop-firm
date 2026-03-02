@@ -24,22 +24,20 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // ✅ CORRECT: getUser() returns { data: { user }, error }
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Public paths that don't require auth
+  // Public paths that anyone can access
   const publicPaths = ['/', '/login', '/signup'];
   const isPublicPath = publicPaths.includes(pathname);
 
-  // If not logged in and trying to access protected route
+  // If not logged in and trying to access protected route → redirect to login
   if (!user && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // If logged in, handle role-based redirects
   if (user) {
-    // ✅ CORRECT: .single() returns { data: profile, error }
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -56,12 +54,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // Block traders from accessing admin
+    // Block traders from accessing admin panel
     if (role === 'trader' && pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // Redirect admins trying to access trader dashboard to admin panel
+    // Redirect admins away from trader dashboard
     if (role === 'admin' && pathname === '/dashboard') {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
