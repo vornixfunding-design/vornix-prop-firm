@@ -2,10 +2,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,62 +11,55 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value, ...options });
+          try {
+            request.cookies.set({ name, value, ...options });
+          } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options, maxAge: 0 });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
+          try {
+            request.cookies.set({ name, value: '', ...options, maxAge: 0 });
+          } catch (e) {}
         },
       },
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {  { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Public paths that don't require auth
-  const publicPaths = ['/', '/login', '/signup'];
-  const isPublicPath = publicPaths.includes(pathname);
-
-  // If not logged in and trying to access protected route
-  if (!user && !isPublicPath) {
+  // Public paths
+  if (!user && !['/', '/login', '/signup'].includes(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If logged in, handle role-based redirects
-  if (user) {
-    // Fetch profile with fresh data
-    const { data: profile } = await supabase
+  // Role-based redirect after login (simplified)
+  if (user && (pathname === '/login' || pathname === '/signup')) {
+    const {  profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
-
-    const role = profile?.role;
-
-    // Redirect logged-in users away from auth pages
-    if (pathname === '/login' || pathname === '/signup') {
-      if (role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      }
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-
-    // Block traders from accessing admin
-    if (role === 'trader' && pathname.startsWith('/admin')) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-
-    // Redirect admins trying to access trader dashboard to admin panel
-    if (role === 'admin' && pathname === '/dashboard') {
+    
+    if (profile?.role === 'admin') {
       return NextResponse.redirect(new URL('/admin', request.url));
+    }
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Block traders from admin
+  if (user && pathname.startsWith('/admin')) {
+    const {  profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
