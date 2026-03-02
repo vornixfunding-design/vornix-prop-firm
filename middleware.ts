@@ -2,10 +2,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,20 +11,21 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value, ...options });
+          try {
+            request.cookies.set({ name, value, ...options });
+          } catch (e) {}
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options, maxAge: 0 });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
+          try {
+            request.cookies.set({ name, value: '', ...options, maxAge: 0 });
+          } catch (e) {}
         },
       },
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // ✅ Correct: getUser() returns { data: { user }, error }
+  const {  { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
   // Public paths that don't require auth
@@ -42,7 +39,7 @@ export async function middleware(request: NextRequest) {
 
   // If logged in, handle role-based redirects
   if (user) {
-    // Fetch profile with fresh data
+    // ✅ Correct: .single() returns { data: profile, error }
     const {  profile } = await supabase
       .from('profiles')
       .select('role')
@@ -70,7 +67,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
