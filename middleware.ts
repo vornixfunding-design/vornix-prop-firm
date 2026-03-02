@@ -24,8 +24,8 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // ✅ Correct: getUser() returns { data: { user }, error }
-  const {  { user } } = await supabase.auth.getUser();
+  // ✅ CORRECT: getUser() returns { data: { user }, error }
+  const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
   // Public paths that don't require auth
@@ -39,8 +39,8 @@ export async function middleware(request: NextRequest) {
 
   // If logged in, handle role-based redirects
   if (user) {
-    // ✅ Correct: .single() returns { data: profile, error }
-    const {  profile } = await supabase
+    // ✅ CORRECT: .single() returns { data: profile, error }
+    const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
