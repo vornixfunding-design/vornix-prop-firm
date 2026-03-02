@@ -1,29 +1,6 @@
-import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-export default async function HomePage() {
-  const supabase = createClient();
-  
-  // ✅ Correct destructuring: getUser() returns { data: { user }, error }
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // If user is logged in, redirect to their appropriate page
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    
-    if (profile?.role === 'admin') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
-  }
-
-  // If not logged in, show landing page
+export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="text-center max-w-md">
@@ -45,6 +22,9 @@ export default async function HomePage() {
             Sign Up
           </Link>
         </div>
+        <p className="mt-8 text-sm text-gray-500">
+          Already have an account? <Link href="/login" className="text-[#0047AB] hover:underline">Sign in</Link>
+        </p>
       </div>
     </div>
   );
