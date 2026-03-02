@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   });
 
   const supabase = createServerClient(
@@ -13,25 +11,15 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
+        get(name: string) { return request.cookies.get(name)?.value; },
         set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          response = NextResponse.next({ request: { headers: request.headers } });
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options, maxAge: 0 });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          response = NextResponse.next({ request: { headers: request.headers } });
           response.cookies.set({ name, value: '', ...options, maxAge: 0 });
         },
       },
@@ -39,37 +27,27 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-
   const pathname = request.nextUrl.pathname;
   const protectedPaths = ['/dashboard', '/admin'];
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
 
-  // Redirect unauthenticated users away from protected routes
   if (!user && isProtectedPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Handle authenticated users
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
-
     const role = profile?.role;
 
-    // Redirect logged-in users away from login page based on role
     if (pathname === '/login' || pathname === '/signup') {
-      if (role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      }
-      if (role === 'trader') {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
+      if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
+      if (role === 'trader') return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // Block traders from accessing admin panel
     if (role === 'trader' && pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
