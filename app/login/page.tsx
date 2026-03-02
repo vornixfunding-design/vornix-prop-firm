@@ -18,8 +18,12 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Let middleware handle redirect based on role
-      window.location.href = '/dashboard';
+      // ✅ Hard redirect based on role returned from server
+      if (result?.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
     }
   }
 
@@ -41,27 +45,44 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">Email</label>
-              <input id="email" name="email" type="email" required disabled={loading}
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                disabled={loading}
                 className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB] focus:border-[#0047AB] sm:text-sm"
-                placeholder="Email address" />
+                placeholder="Email address"
+              />
             </div>
             <div>
               <label htmlFor="password" className="sr-only">Password</label>
-              <input id="password" name="password" type="password" required disabled={loading}
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                disabled={loading}
                 className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB] focus:border-[#0047AB] sm:text-sm"
-                placeholder="Password" />
+                placeholder="Password"
+              />
             </div>
           </div>
 
-          <button type="submit" disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0047AB] hover:bg-[#003580] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0047AB] disabled:opacity-50 disabled:cursor-not-allowed">
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0047AB] hover:bg-[#003580] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0047AB] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
         
         <p className="text-center text-sm text-gray-600">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-[#0047AB] hover:text-[#003580]">Sign Up</Link>
+          <Link href="/signup" className="font-medium text-[#0047AB] hover:text-[#003580]">
+            Sign Up
+          </Link>
         </p>
       </div>
     </div>
