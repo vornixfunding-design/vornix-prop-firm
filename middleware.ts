@@ -24,38 +24,46 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {  { user } } = await supabase.auth.getUser();
+  // ✅ Correct destructuring: getUser() returns { data: { user }, error }
+  const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  // Public paths
-  if (!user && !['/', '/login', '/signup'].includes(pathname)) {
+  // Public paths that don't require auth
+  const publicPaths = ['/', '/login', '/signup'];
+  const isPublicPath = publicPaths.includes(pathname);
+
+  // If not logged in and trying to access protected route
+  if (!user && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Role-based redirect after login (simplified)
-  if (user && (pathname === '/login' || pathname === '/signup')) {
-    const {  profile } = await supabase
+  // If logged in, handle role-based redirects
+  if (user) {
+    // Fetch profile with correct destructuring
+    const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
-    
-    if (profile?.role === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
-    }
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
 
-  // Block traders from admin
-  if (user && pathname.startsWith('/admin')) {
-    const {  profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    
-    if (profile?.role !== 'admin') {
+    const role = profile?.role;
+
+    // Redirect logged-in users away from auth pages
+    if (pathname === '/login' || pathname === '/signup') {
+      if (role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Block traders from accessing admin
+    if (role === 'trader' && pathname.startsWith('/admin')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Redirect admins trying to access trader dashboard to admin panel
+    if (role === 'admin' && pathname === '/dashboard') {
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 
