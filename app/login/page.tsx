@@ -18,12 +18,9 @@ export default function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // ✅ Hard redirect based on role returned from server
-      if (result?.role === 'admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/dashboard';
-      }
+      // ✅ Middleware will handle redirect based on user role
+      // Just redirect to dashboard, middleware will route admins to /admin
+      window.location.href = '/dashboard';
     }
   }
 
