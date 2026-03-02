@@ -2,6 +2,10 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  });
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -11,20 +15,19 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            request.cookies.set({ name, value, ...options });
-          } catch (e) {}
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            request.cookies.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (e) {}
+          request.cookies.set({ name, value: '', ...options, maxAge: 0 });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
         },
       },
     }
   );
 
-  // ✅ Correct destructuring: getUser() returns { data: { user }, error }
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
@@ -39,8 +42,8 @@ export async function middleware(request: NextRequest) {
 
   // If logged in, handle role-based redirects
   if (user) {
-    // Fetch profile with correct destructuring
-    const { data: profile } = await supabase
+    // Fetch profile with fresh data
+    const {  profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
@@ -67,7 +70,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
